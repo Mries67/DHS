@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cold War Proxy Wars: Interactive Timeline</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Georgia, sans-serif;
+    background: #0a0f1e;
+    color: #e8e4d8;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .hero {
+    background: linear-gradient(135deg, #0d1b3e 0%, #1a2f5e 40%, #0d1b3e 100%);
+    border-bottom: 2px solid #c9a227;
+    padding: 32px 40px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 300px; height: 300px;
+    border: 1px solid rgba(201,162,39,0.12);
+    border-radius: 50%;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 420px; height: 420px;
+    border: 1px solid rgba(201,162,39,0.07);
+    border-radius: 50%;
+  }
+
+  .school-badge {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #c9a227;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .hero h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .hero h1 span { color: #c9a227; }
+
+  .hero .subtitle {
+    font-size: 14px;
+    color: #9ba8c0;
+    margin-bottom: 20px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(201,162,39,0.3);
+    background: transparent;
+    color: #9ba8c0;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .filter-btn:hover { border-color: #c9a227; color: #e8e4d8; }
+  .filter-btn.active { background: #c9a227; border-color: #c9a227; color: #0a0f1e; font-weight: 700; }
+
+  .main {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    min-height: calc(100vh - 160px);
+  }
+
+  /* ---- TIMELINE PANEL ---- */
+  .timeline-panel {
+    border-right: 1px solid rgba(201,162,39,0.2);
+    padding: 0;
+    overflow-y: auto;
+    max-height: calc(100vh - 160px);
+    position: relative;
+  }
+
+  .timeline-axis {
+    position: absolute;
+    left: 48px;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #c9a227 0%, rgba(201,162,39,0.2) 100%);
+  }
+
+  .timeline-entry {
+    position: relative;
+    padding: 20px 20px 20px 72px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    transition: background 0.15s;
+  }
+
+  .timeline-entry:hover { background: rgba(201,162,39,0.06); }
+  .timeline-entry.active { background: rgba(201,162,39,0.12); border-left: 3px solid #c9a227; padding-left: 69px; }
+
+  .timeline-dot {
+    position: absolute;
+    left: 40px;
+    top: 24px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid #c9a227;
+    background: #0a0f1e;
+    transition: all 0.2s;
+    z-index: 2;
+  }
+
+  .timeline-entry.active .timeline-dot,
+  .timeline-entry:hover .timeline-dot {
+    background: #c9a227;
+    box-shadow: 0 0 12px rgba(201,162,39,0.5);
+  }
+
+  .entry-year {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #c9a227;
+    margin-bottom: 3px;
+  }
+
+  .entry-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e8e4d8;
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+
+  .entry-region {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .entry-teaser {
+    font-size: 11px;
+    color: #7a8499;
+    line-height: 1.5;
+  }
+
+  /* Region colors */
+  .r-asia { background: rgba(59,139,212,0.2); color: #7ab8ef; }
+  .r-europe { background: rgba(95,74,183,0.2); color: #b0a2ee; }
+  .r-africa { background: rgba(30,158,117,0.2); color: #6dcfaf; }
+  .r-latam { background: rgba(216,90,48,0.2); color: #f29070; }
+  .r-mideast { background: rgba(186,117,23,0.2); color: #e6c070; }
+  .r-global { background: rgba(120,120,130,0.2); color: #b0b0c0; }
+
+  /* ---- DETAIL PANEL ---- */
+  .detail-panel {
+    padding: 32px 40px;
+    overflow-y: auto;
+    max-height: calc(100vh - 160px);
+  }
+
+  .detail-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #3a4560;
+    text-align: center;
+  }
+
+  .detail-empty .icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  .detail-empty p { font-size: 14px; line-height: 1.6; }
+
+  .detail-content { display: none; }
+  .detail-content.visible { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .detail-header {
+    border-bottom: 1px solid rgba(201,162,39,0.25);
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+  }
+
+  .detail-year-tag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #c9a227;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .detail-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .detail-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .tag {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+  }
+
+  .tag-us { background: rgba(59,139,212,0.2); color: #7ab8ef; border: 1px solid rgba(59,139,212,0.3); }
+  .tag-ussr { background: rgba(212,59,59,0.2); color: #ef7a7a; border: 1px solid rgba(212,59,59,0.3); }
+  .tag-local { background: rgba(120,120,120,0.2); color: #b0b0b0; border: 1px solid rgba(120,120,120,0.3); }
+  .tag-nato { background: rgba(95,74,183,0.2); color: #b0a2ee; border: 1px solid rgba(95,74,183,0.3); }
+
+  .detail-section {
+    margin-bottom: 24px;
+  }
+
+  .detail-section h3 {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #c9a227;
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(201,162,39,0.15);
+  }
+
+  .detail-section p {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #c4c0b4;
+  }
+
+  .sides-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .side-card {
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .side-card .side-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .side-us { border-top: 2px solid #378add; }
+  .side-us .side-label { color: #7ab8ef; }
+  .side-ussr { border-top: 2px solid #ad3030; }
+  .side-ussr .side-label { color: #ef7a7a; }
+
+  .side-card ul { list-style: none; padding: 0; }
+  .side-card ul li { font-size: 12px; color: #9ba8c0; line-height: 1.6; padding-left: 12px; position: relative; }
+  .side-card ul li::before { content: '—'; position: absolute; left: 0; color: rgba(201,162,39,0.5); }
+
+  .stat-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .stat-box {
+    background: rgba(201,162,39,0.08);
+    border: 1px solid rgba(201,162,39,0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .stat-box .stat-val {
+    font-size: 18px;
+    font-weight: 700;
+    color: #c9a227;
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .stat-box .stat-lbl {
+    font-size: 10px;
+    color: #6a7490;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .quote-box {
+    background: rgba(201,162,39,0.06);
+    border-left: 3px solid #c9a227;
+    border-radius: 0 6px 6px 0;
+    padding: 14px 16px;
+    margin: 16px 0;
+    font-size: 13px;
+    font-style: italic;
+    color: #b0ac9e;
+    line-height: 1.7;
+  }
+
+  .quote-source {
+    font-size: 11px;
+    font-style: normal;
+    color: #6a7490;
+    margin-top: 6px;
+  }
+
+  .ap-connect {
+    background: rgba(30,58,107,0.4);
+    border: 1px solid rgba(59,139,212,0.25);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 20px;
+  }
+
+  .ap-connect .ap-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #7ab8ef;
+    margin-bottom: 8px;
+  }
+
+  .ap-connect p {
+    font-size: 13px;
+    color: #9ba8c0;
+    line-height: 1.6;
+  }
+
+  .ap-connect strong { color: #e8e4d8; }
+
+  /* responsive */
+  @media (max-width: 768px) {
+    .main { grid-template-columns: 1fr; }
+    .timeline-panel { max-height: 300px; }
+    .detail-panel { max-height: none; }
+    .hero { padding: 20px; }
+    .hero h1 { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="school-badge">Douglas Schools · Social Studies Department</div>
+  <h1>Cold War <span>Proxy Wars</span></h1>
+  <p class="subtitle">Interactive Timeline · Click any event to explore · 1945–1991</p>
+  <div class="controls">
+    <button class="filter-btn active" onclick="filterRegion('all', this)">All Regions</button>
+    <button class="filter-btn" onclick="filterRegion('asia', this)">Asia</button>
+    <button class="filter-btn" onclick="filterRegion('europe', this)">Europe</button>
+    <button class="filter-btn" onclick="filterRegion('africa', this)">Africa</button>
+    <button class="filter-btn" onclick="filterRegion('latam', this)">Latin America</button>
+    <button class="filter-btn" onclick="filterRegion('mideast', this)">Middle East</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="timeline-panel" id="timeline-panel">
+    <div class="timeline-axis"></div>
+    <!-- entries injected by JS -->
+  </div>
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-empty" id="empty-state">
+      <div class="icon">◎</div>
+      <p>Select any event on the timeline<br>to explore the full story.</p>
+    </div>
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<script>
+const events = [
+  {
+    id: 0,
+    year: "1945–47",
+    title: "The Cold War Begins",
+    region: "global",
+    regionLabel: "Global",
+    teaser: "Nuclear deterrence reshapes how superpowers fight.",
+    tags: [],
+    stats: [{ val: "2", lbl: "Superpowers" }, { val: "~70K", lbl: "Nuclear Warheads (peak)" }, { val: "46", lbl: "Years of Cold War" }],
+    overview: "With World War II over, the United States and Soviet Union emerged as the world's two superpowers — and almost immediately began competing for global influence. The decisive factor: both possessed nuclear weapons capable of civilization-ending destruction. This made direct military confrontation unthinkable. Strategists called it Mutually Assured Destruction (MAD): if either side launched, both would be annihilated. The result was a paradox — the world's most powerful militaries were too dangerous to use against each other directly.",
+    usSide: ["Containment policy (Truman Doctrine)", "CIA covert operations", "Military aid to allies", "Marshall Plan economic aid"],
+    ussrSide: ["Installing communist governments in Eastern Europe", "KGB covert operations", "Cominform (communist coordination)", "Arms and advisors to aligned movements"],
+    quote: "It is the policy of the United States to support free peoples who are resisting attempted subjugation by armed minorities or by outside pressures.",
+    quoteSource: "— President Truman, address to Congress, March 1947",
+    legacy: "The logic of nuclear deterrence would drive every major conflict for the next four decades underground — into proxy conflicts fought in Korea, Vietnam, Angola, Afghanistan, and dozens of other nations whose populations bore the costs of superpower competition.",
+    apConnect: "This event connects to <strong>KC-7.2.II</strong>: The Cold War shaped and reshaped existing alliance systems and encouraged revolutionary movements around the world. The concept of <strong>nuclear deterrence</strong> explains WHY proxy warfare became the dominant form of superpower conflict — a direct answer to the AP question of causation."
+  },
+  {
+    id: 1,
+    year: "1947–1949",
+    title: "Greek Civil War",
+    region: "europe",
+    regionLabel: "Europe",
+    teaser: "The first Cold War proxy test — U.S. backs Greek government against communist rebels.",
+    tags: ["us", "ussr"],
+    stats: [{ val: "1947", lbl: "Truman Doctrine" }, { val: "~80K", lbl: "Communist Rebels (peak)" }, { val: "1949", lbl: "Communist Defeat" }],
+    overview: "The Greek Civil War was one of the first Cold War proxy conflicts. Communist guerrillas (backed by Yugoslavia and indirectly the USSR) fought the Greek government. Britain, exhausted by WWII, could no longer fund the Greek royalists. The United States stepped in, marking the first application of the Truman Doctrine — the U.S. would support 'free peoples resisting subjugation.' American military aid and advisors helped the Greek government defeat the communist insurgency by 1949.",
+    usSide: ["$400 million in military and economic aid", "Military advisors and training", "Truman Doctrine officially announced", "Supported Greek royalist government"],
+    ussrSide: ["Indirect support through Yugoslavia", "Yugoslav partisan networks supplied rebels", "Stalin cautious — Greece in British/US sphere", "Did not openly commit Soviet forces"],
+    quote: "Greece must have assistance if it is to become a self-supporting and self-respecting democracy. The United States must supply that assistance.",
+    quoteSource: "— President Truman, 1947",
+    legacy: "The Greek Civil War established the Truman Doctrine and demonstrated that the U.S. would intervene — economically and militarily — to prevent communist victories anywhere in the world. It was a template for all future proxy conflicts.",
+    apConnect: "Connects to <strong>KC-7.2.II</strong> and the Truman Doctrine. The Greek Civil War was the first explicit test of containment policy and established the precedent of U.S. military aid to governments fighting communist insurgencies — a pattern repeated in Korea, Vietnam, and beyond."
+  },
+  {
+    id: 2,
+    year: "1950–1953",
+    title: "Korean War",
+    region: "asia",
+    regionLabel: "Asia",
+    teaser: "The first 'hot war' of the Cold War — millions die on the Korean peninsula.",
+    tags: ["us", "ussr", "nato"],
+    stats: [{ val: "~3M", lbl: "Total Casualties" }, { val: "540K", lbl: "US Troops (peak)" }, { val: "1953", lbl: "Armistice Signed" }],
+    overview: "When North Korean forces (backed by the Soviet Union and China) invaded South Korea in June 1950, the United States led a United Nations coalition to defend the South. China entered the war when UN forces approached the Chinese border. After three years of brutal fighting — including massive Chinese infantry offensives and devastating U.S. air campaigns — the war ended with an armistice roughly at the original border, the 38th parallel. Korea remains divided today. The war demonstrated that superpowers would fight through proxies to prevent the other side from gaining strategic territory.",
+    usSide: ["Led UN coalition force", "540,000 U.S. troops at peak", "MacArthur's Inchon landing — turned the tide", "General Ridgway stabilized front after China entered"],
+    ussrSide: ["Armed and equipped North Korea", "Soviet pilots flew combat missions secretly", "China deployed ~300,000 troops", "USSR and China coordinated strategy"],
+    quote: "We are not at war. The President simply could not go to war under the Constitution without Congress... but those men are fighting, and they are dying.",
+    quoteSource: "— Senator Robert Taft, 1950",
+    legacy: "The Korean War established the pattern of proxy conflict: direct superpower confrontation avoided, enormous casualties among local populations and third-party forces, and no decisive resolution. It also revealed the danger of escalation — when China entered, the U.S. feared a third world war. The war ends in stalemate, illustrating the limits of proxy warfare.",
+    apConnect: "The Korean War is a core example for <strong>KC-7.2.II</strong>. Key AP themes: the domino theory (if Korea falls, Japan is next), containment policy in practice, and the tension between Truman and MacArthur over escalation (civil-military relations). The stalemate outcome is crucial — proxy wars rarely deliver clean victories."
+  },
+  {
+    id: 3,
+    year: "1953",
+    title: "CIA Coup in Iran (Operation AJAX)",
+    region: "mideast",
+    regionLabel: "Middle East",
+    teaser: "The CIA overthrows Iran's democratically elected Prime Minister Mossadegh.",
+    tags: ["us"],
+    stats: [{ val: "$5M", lbl: "CIA Funding" }, { val: "1953", lbl: "Coup Executed" }, { val: "1979", lbl: "Iranian Revolution" }],
+    overview: "Prime Minister Mohammad Mossadegh had nationalized Iran's oil industry, threatening British and American oil interests. The CIA and British intelligence orchestrated a coup (Operation AJAX/Boot) that overthrew Mossadegh and restored Shah Mohammad Reza Pahlavi to absolute power. The Shah became a close U.S. ally but ruled increasingly autocratically. This covert operation is one of the clearest examples of revisionist historians' argument that U.S. proxy interventions served economic and geopolitical interests, not just ideology.",
+    usSide: ["CIA organized and funded the coup", "Installed Shah as pro-Western authoritarian", "Secured access to Iranian oil", "Prevented potential Soviet influence"],
+    ussrSide: ["USSR had withdrawn from northern Iran in 1946", "Soviet-backed Tudeh Party active in Iran", "Both superpowers vied for Iranian alignment"],
+    quote: "The oil is ours. We must stand firm against American pressure and British machinations.",
+    quoteSource: "— Prime Minister Mossadegh, 1951",
+    legacy: "The 1953 coup fueled deep anti-American sentiment in Iran for decades. The Shah's repressive rule eventually triggered the 1979 Islamic Revolution, which brought Ayatollah Khomeini to power — directly shaping U.S.-Iran relations for the next 70 years. It is a powerful example of the unintended consequences of proxy intervention.",
+    apConnect: "This event is central to the <strong>revisionist historical interpretation</strong> of Cold War proxy conflicts. It demonstrates that U.S. interventions were not always about containing communism — Mossadegh was a democratic nationalist, not a communist. This supports the revisionist argument that economic interests drove U.S. policy. Excellent for AP source analysis and historiographical essays."
+  },
+  {
+    id: 4,
+    year: "1954",
+    title: "CIA Coup in Guatemala",
+    region: "latam",
+    regionLabel: "Latin America",
+    teaser: "The CIA overthrows Guatemala's democratically elected Arbenz government.",
+    tags: ["us"],
+    stats: [{ val: "1954", lbl: "Coup Date" }, { val: "36yrs", lbl: "Civil War That Followed" }, { val: "200K", lbl: "Guatemalan Civil War Deaths" }],
+    overview: "President Jacobo Árbenz implemented land reform that redistributed United Fruit Company holdings to Guatemalan peasants. The Eisenhower administration, concerned about communist influence and pushed by United Fruit lobbying, authorized the CIA's Operation PBSUCCESS — a covert coup that toppled Árbenz and replaced him with a military junta. The intervention triggered decades of military dictatorship and civil war in Guatemala that lasted until 1996 and resulted in approximately 200,000 deaths.",
+    usSide: ["CIA-organized coup (Operation PBSUCCESS)", "Air campaign with CIA-supplied planes", "United Fruit Company lobbied for intervention", "Replaced Árbenz with military junta"],
+    ussrSide: ["No direct Soviet involvement", "Guatemala bought some Czech weapons", "U.S. used this as pretext for 'communist threat'"],
+    quote: "It is not possible for me to accept an offer that would mean treachery to my principles and to my country.",
+    quoteSource: "— President Árbenz, on refusing to resign, 1954",
+    legacy: "Guatemala became one of the most-cited examples by revisionist historians of U.S. imperialism disguised as anti-communism. The subsequent military governments committed massive human rights abuses. The civil war that followed killed an estimated 200,000 Guatemalans, mostly indigenous Maya, in one of Latin America's worst atrocities.",
+    apConnect: "Connect to <strong>KC-7.3.III</strong> (resistance to political and social order) and the revisionist critique. The Guatemala coup is paired frequently with the Iran coup (1953) to argue that the U.S. pattern of intervention served corporate and geopolitical interests. An excellent primary source comparison is Eisenhower's 'domino' justification vs. Árbenz's actual reform agenda."
+  },
+  {
+    id: 5,
+    year: "1955–1975",
+    title: "Vietnam War",
+    region: "asia",
+    regionLabel: "Asia",
+    teaser: "The defining proxy war — America's longest 20th-century conflict ends in defeat.",
+    tags: ["us", "ussr"],
+    stats: [{ val: "58K", lbl: "US Deaths" }, { val: "~3M", lbl: "Vietnamese Deaths" }, { val: "500K", lbl: "US Troops (peak)" }],
+    overview: "The Vietnam War is the most famous Cold War proxy conflict. After France's colonial defeat at Dien Bien Phu (1954), Vietnam was divided at the 17th parallel — communist North Vietnam under Ho Chi Minh, and South Vietnam backed by the United States. The U.S. applied domino theory logic: if South Vietnam fell, all of Southeast Asia would follow. After the Gulf of Tonkin incident (1964), the U.S. escalated massively, eventually deploying over 500,000 troops. Despite enormous military power, the U.S. could not defeat North Vietnam's guerrilla strategy (supported by the USSR and China). The U.S. withdrew in 1973 following the Paris Peace Accords. North Vietnam reunified the country under communist rule in 1975.",
+    usSide: ["500,000+ U.S. troops at peak", "Massive air campaign (Operation Rolling Thunder)", "CIA's Phoenix Program (targeting Viet Cong)", "South Korean, Australian, New Zealand forces"],
+    ussrSide: ["Supplied North Vietnam with weapons, advisors", "Surface-to-air missiles (SAMs)", "China sent 320,000 support troops", "Ho Chi Minh Trail supplied by USSR/China"],
+    quote: "No event in American history is more misunderstood than the Vietnam War. It was misreported then, and it is misremembered now.",
+    quoteSource: "— President Nixon, 1985",
+    legacy: "The Vietnam War had enormous consequences: the collapse of U.S. public trust in government (the 'credibility gap'), the War Powers Act (1973), and a generation of trauma for American veterans and Vietnamese civilians alike. For Cold War analysis, Vietnam demonstrates the limits of superpower military force against determined guerrilla insurgencies — and the principal-agent problem in action.",
+    apConnect: "Vietnam is a central case study for <strong>KC-7.2.II</strong>. Key AP themes: domino theory, containment policy, the credibility gap, the anti-war movement (domestic resistance), and the failure of conventional military power in asymmetric conflict. The Orthodox interpretation frames it as a necessary stand against communist aggression; the Revisionist interpretation sees it as imperial overreach. The post-revisionist synthesis examines Vietnamese agency — Ho Chi Minh was primarily a nationalist, not a Soviet puppet."
+  },
+  {
+    id: 6,
+    year: "1961",
+    title: "Bay of Pigs / Cuban Missile Crisis",
+    region: "latam",
+    regionLabel: "Latin America",
+    teaser: "The proxy war that nearly went nuclear — the closest the Cold War came to WWIII.",
+    tags: ["us", "ussr"],
+    stats: [{ val: "13", lbl: "Days of Crisis (Oct 1962)" }, { val: "1961", lbl: "Bay of Pigs Failure" }, { val: "~90mi", lbl: "Cuba to U.S. Mainland" }],
+    overview: "After Fidel Castro's 1959 revolution, Cuba aligned with the Soviet Union. In 1961, the CIA trained Cuban exiles for an invasion at the Bay of Pigs — a catastrophic failure that embarrassed the Kennedy administration. In 1962, the USSR placed nuclear missiles in Cuba, triggering the most dangerous confrontation of the Cold War. For 13 days in October 1962, the world stood at the brink of nuclear war. The crisis was resolved when the USSR agreed to remove missiles in exchange for a U.S. pledge not to invade Cuba and a secret removal of U.S. missiles from Turkey.",
+    usSide: ["Bay of Pigs invasion (1961) — CIA-organized failure", "Naval blockade of Cuba (1962)", "Kennedy demanded Soviet missile withdrawal", "Secret deal: U.S. removes missiles from Turkey"],
+    ussrSide: ["Placed nuclear missiles in Cuba", "Supplied Cuba with military equipment", "Khrushchev negotiated direct with Kennedy", "Withdrew missiles in exchange for concessions"],
+    quote: "We're eyeball to eyeball, and I think the other fellow just blinked.",
+    quoteSource: "— Secretary of State Dean Rusk, October 1962",
+    legacy: "The Cuban Missile Crisis demonstrated the ultimate danger of proxy conflicts: escalation to direct nuclear confrontation. In its aftermath, the superpowers established the Moscow-Washington hotline and pursued arms control agreements (Test Ban Treaty, 1963). Cuba remained a Soviet ally and a proxy base for Soviet-backed operations throughout Africa and Latin America.",
+    apConnect: "The Cuban Missile Crisis is the clearest example that proxy wars carry escalation risk. Connect to <strong>KC-7.2.III</strong> (Cold War tensions). The crisis is also a study in crisis decision-making — Kennedy's EXCOMM deliberations, Soviet internal divisions — and demonstrates how the principal-agent problem operates at the nuclear level: would Castro have been able to trigger a Soviet launch?"
+  },
+  {
+    id: 7,
+    year: "1975–2002",
+    title: "Angolan Civil War",
+    region: "africa",
+    regionLabel: "Africa",
+    teaser: "The most international proxy war — U.S., USSR, Cuba, China, and South Africa all intervene.",
+    tags: ["us", "ussr"],
+    stats: [{ val: "500K+", lbl: "Deaths" }, { val: "50K", lbl: "Cuban Troops (peak)" }, { val: "27yrs", lbl: "War Duration" }],
+    overview: "When Portugal withdrew from Angola in 1975 after the Carnation Revolution, three factions immediately went to war for control of the new nation. The MPLA (Marxist) was backed by the Soviet Union and Cuba, which sent 50,000 troops and hundreds of military advisors. The UNITA faction was backed by the United States and South Africa. China supported the FNLA. The Angolan conflict represents the most complex proxy war of the Cold War — involving five external powers and lasting 27 years. It is also a clear example of how decolonization created power vacuums that superpowers rushed to fill.",
+    usSide: ["CIA funded and armed UNITA", "Clark Amendment (1975) initially blocked overt aid", "South Africa invaded Angola (with U.S. awareness)", "Jonas Savimbi cultivated as U.S. ally"],
+    ussrSide: ["Armed and financed MPLA", "Cuba sent 50,000 troops — decisive intervention", "Soviet military advisors on the ground", "MPLA won initial phase of civil war (1975–76)"],
+    quote: "We have no alternative but to respond to the challenge by making our presence felt everywhere in Africa.",
+    quoteSource: "— Fidel Castro, justifying Cuban intervention in Angola",
+    legacy: "Angola illustrates both the human cost of proxy wars and the principal-agent problem. Cuba pursued its own ideological goals in Africa, going further than the USSR sometimes wanted. The war destabilized neighboring countries (Namibia, DRC, Zambia) and left Angola with millions of landmines still causing casualties today. The MPLA government eventually made peace with UNITA in 2002 — but the conflict left a nation traumatized.",
+    apConnect: "Angola is the best example for demonstrating how <strong>decolonization created Cold War proxy battlegrounds</strong>. Connect to <strong>KC-7.3.III</strong>. The principal-agent problem is vivid here — Cuba acted as an independent actor, not just a Soviet proxy. For AP students, Angola also demonstrates that the Cold War's human costs fell overwhelmingly on the Global South, not on the superpowers themselves."
+  },
+  {
+    id: 8,
+    year: "1979–1989",
+    title: "Soviet-Afghan War",
+    region: "asia",
+    regionLabel: "Asia",
+    teaser: "The USSR's Vietnam — a decade of grinding war that accelerates Soviet collapse.",
+    tags: ["us", "ussr"],
+    stats: [{ val: "~1M", lbl: "Afghan Civilians Killed" }, { val: "15K", lbl: "Soviet Deaths" }, { val: "1989", lbl: "Soviet Withdrawal" }],
+    overview: "When a communist coup in Afghanistan produced an unstable government, the Soviet Union invaded in December 1979 to prop it up. The United States, Saudi Arabia, and Pakistan covertly funded and armed Afghan Mujahideen resistance fighters through Operation Cyclone — the CIA's largest covert operation. The Mujahideen received Stinger surface-to-air missiles that neutralized Soviet air power. After a decade of grinding guerrilla warfare that drained Soviet resources and manpower, Gorbachev withdrew Soviet forces in 1989. The Afghan communist government collapsed in 1992.",
+    usSide: ["Operation Cyclone — $3 billion in covert aid", "Stinger missiles changed the war", "Coordinated with Pakistan's ISI", "Saudi Arabia matched U.S. funding"],
+    ussrSide: ["120,000 troops at peak", "Attempted to pacify the country for 10 years", "Suffered ~15,000 dead, 35,000 wounded", "Economic drain contributed to Soviet collapse"],
+    quote: "We have bled the Soviet Union white in Afghanistan. The question now is what happens next.",
+    quoteSource: "— Zbigniew Brzezinski, U.S. National Security Advisor",
+    legacy: "Afghanistan is the clearest example of a proxy war accelerating a superpower's downfall. The Soviet withdrawal exposed the USSR's military and economic weaknesses, contributing to the pressures that led to the Soviet collapse in 1991. However, the aftermath of U.S. policy created a power vacuum filled by the Taliban — and the Mujahideen networks the U.S. funded became the infrastructure for Al-Qaeda. A profound example of unintended consequences.",
+    apConnect: "The Afghan War connects to <strong>KC-7.2.II</strong> (Cold War's global impact) and the <strong>end of the Cold War</strong>. The key AP analytical move is the chain of causation: U.S. arms Mujahideen → Soviet military and economic drain → Gorbachev's reform pressure → Soviet collapse. Also critical: the post-1989 power vacuum → Taliban rise → September 11, 2001. Afghanistan shows that proxy war consequences extend far beyond the Cold War itself."
+  },
+  {
+    id: 9,
+    year: "1980–1988",
+    title: "Iran-Iraq War",
+    region: "mideast",
+    regionLabel: "Middle East",
+    teaser: "The U.S. backs Saddam Hussein against revolutionary Iran — weapons to both sides.",
+    tags: ["us", "ussr", "local"],
+    stats: [{ val: "~1M", lbl: "Total Casualties" }, { val: "8yrs", lbl: "War Duration" }, { val: "1988", lbl: "UN Ceasefire" }],
+    overview: "Following the 1979 Iranian Revolution, Iraq's Saddam Hussein invaded Iran in 1980, hoping to exploit Iranian weakness. The United States — fearing Iranian revolutionary Islam more than Iraqi Ba'athism — covertly supported Iraq with intelligence, economic aid, and technology for chemical weapons. The Soviet Union also supplied Iraq. Meanwhile, Iran bought weapons covertly from the U.S. in what became the Iran-Contra scandal. Both superpowers manipulated the conflict to prevent either side from achieving a decisive victory, ensuring the war dragged on for eight years and killed nearly one million people.",
+    usSide: ["Intelligence sharing with Iraq", "Economic loans to Iraq", "U.S. ships escorted Kuwaiti tankers (Operation Earnest Will)", "Iran-Contra: secretly sold weapons to Iran"],
+    ussrSide: ["Sold weapons to Iraq", "Maintained relations with both sides", "Neither superpower wanted Iranian revolutionary Islam to spread"],
+    quote: "We had two enemies and one of them was fighting the other. The logic was simple: let them exhaust each other.",
+    quoteSource: "— Unnamed U.S. official, quoted in diplomatic histories",
+    legacy: "The Iran-Iraq War exemplifies the moral ambiguity of proxy warfare. The U.S. knowingly aided Iraq's chemical weapons program — later cited as evidence of WMDs in 2003. Iraq's postwar debt crisis contributed to Hussein's decision to invade Kuwait in 1990, triggering the Gulf War. The war also entrenched U.S.-Iranian enmity that persists today.",
+    apConnect: "The Iran-Iraq War is excellent for <strong>historiographical analysis</strong>. It challenges simple Orthodox narratives — the U.S. was not defending democracy but manipulating a conflict between two authoritarian states. The Iran-Contra scandal within this conflict is a study in the principal-agent problem: CIA operations operating outside congressional oversight. Connects to <strong>KC-7.2.II</strong>."
+  },
+  {
+    id: 10,
+    year: "1991",
+    title: "Cold War Ends: The Reckoning",
+    region: "global",
+    regionLabel: "Global",
+    teaser: "The USSR dissolves — but the proxy wars' consequences endure.",
+    tags: [],
+    stats: [{ val: "1991", lbl: "USSR Dissolves" }, { val: "15", lbl: "New Nations Created" }, { val: "Millions", lbl: "Lives Lost in Proxy Wars" }],
+    overview: "The Soviet Union officially dissolved on December 25, 1991. The Cold War was over. But the legacy of 45 years of proxy warfare was left behind. Many of the regions that had served as proxy battlegrounds — Afghanistan, Angola, Nicaragua, Cambodia, Mozambique — were left with shattered economies, landmine-contaminated farmland, traumatized populations, and no stable governments. The superpowers that had funded and armed these conflicts simply disengaged, leaving behind the ruins.",
+    usSide: ["Declared victory in the Cold War", "Reduced engagement in former proxy theaters", "Afghanistan abandoned — power vacuum created", "Clinton era: 'peace dividend' — military budget cuts"],
+    ussrSide: ["USSR ceased to exist", "15 successor states emerged", "Russia inherited Soviet debts and obligations", "Former Soviet allies left without support"],
+    quote: "The Cold War's killing fields were not in Europe. They were in the developing world — in Asia, Africa, and Latin America — where millions died in conflicts the superpowers funded.",
+    quoteSource: "— Paul Thomas Chamberlin, 'The Cold War's Killing Fields' (2018)",
+    legacy: "Historians estimate that Cold War proxy conflicts killed between 5 and 20 million people — almost all in the developing world. The proxy wars left behind: failed states (Somalia, Afghanistan, Angola), ethnic conflicts inflamed by superpower meddling, economies devastated by arms imports, and political cultures shaped by authoritarianism propped up by Cold War patronage. The legacies are still felt today.",
+    apConnect: "This closing context is essential for <strong>synthesis questions</strong> on the AP exam. The key post-revisionist insight: Cold War proxy wars must be understood from the perspective of the nations that suffered them, not just the superpowers that directed them. Connect to <strong>KC-7.3.III</strong> (global challenges to political order) and the enduring consequences of 20th-century conflicts for the 21st century."
+  }
+];
+
+const regionColors = {
+  asia: 'r-asia', europe: 'r-europe', africa: 'r-africa',
+  latam: 'r-latam', mideast: 'r-mideast', global: 'r-global'
+};
+
+let currentFilter = 'all';
+let selectedId = null;
+
+function renderTimeline() {
+  const panel = document.getElementById('timeline-panel');
+  const existingAxis = panel.querySelector('.timeline-axis');
+  panel.innerHTML = '';
+  if (existingAxis) panel.appendChild(existingAxis);
+
+  events.forEach(ev => {
+    if (currentFilter !== 'all' && ev.region !== currentFilter) return;
+
+    const entry = document.createElement('div');
+    entry.className = 'timeline-entry' + (selectedId === ev.id ? ' active' : '');
+    entry.innerHTML = `
+      <div class="timeline-dot"></div>
+      <div class="entry-year">${ev.year}</div>
+      <div class="entry-title">${ev.title}</div>
+      <span class="entry-region ${regionColors[ev.region] || 'r-global'}">${ev.regionLabel}</span>
+      <div class="entry-teaser">${ev.teaser}</div>
+    `;
+    entry.onclick = () => selectEvent(ev.id);
+    panel.appendChild(entry);
+  });
+}
+
+function selectEvent(id) {
+  selectedId = id;
+  renderTimeline();
+  const ev = events.find(e => e.id === id);
+
+  document.getElementById('empty-state').style.display = 'none';
+
+  const tagMap = { us: ['tag-us', 'U.S.-Backed'], ussr: ['tag-ussr', 'USSR-Backed'], local: ['tag-local', 'Local Actors'], nato: ['tag-nato', 'NATO Forces'] };
+  const tagsHTML = ev.tags.map(t => `<span class="tag ${tagMap[t][0]}">${tagMap[t][1]}</span>`).join('');
+
+  const statsHTML = ev.stats.map(s => `
+    <div class="stat-box">
+      <div class="stat-val">${s.val}</div>
+      <div class="stat-lbl">${s.lbl}</div>
+    </div>
+  `).join('');
+
+  const content = document.getElementById('detail-content');
+  content.innerHTML = `
+    <div class="detail-content visible">
+      <div class="detail-header">
+        <div class="detail-year-tag">${ev.year}</div>
+        <div class="detail-title">${ev.title}</div>
+        <div class="detail-tags">
+          <span class="entry-region ${regionColors[ev.region] || 'r-global'}">${ev.regionLabel}</span>
+          ${tagsHTML}
+        </div>
+      </div>
+
+      <div class="stat-row">${statsHTML}</div>
+
+      <div class="detail-section">
+        <h3>Overview</h3>
+        <p>${ev.overview}</p>
+      </div>
+
+      ${ev.usSide ? `
+      <div class="detail-section">
+        <h3>The Sides</h3>
+        <div class="sides-grid">
+          <div class="side-card side-us">
+            <div class="side-label">United States / West</div>
+            <ul>${ev.usSide.map(i => `<li>${i}</li>`).join('')}</ul>
+          </div>
+          <div class="side-card side-ussr">
+            <div class="side-label">Soviet Union / East</div>
+            <ul>${ev.ussrSide.map(i => `<li>${i}</li>`).join('')}</ul>
+          </div>
+        </div>
+      </div>` : ''}
+
+      <div class="quote-box">
+        "${ev.quote}"
+        <div class="quote-source">${ev.quoteSource}</div>
+      </div>
+
+      <div class="detail-section">
+        <h3>Historical Legacy</h3>
+        <p>${ev.legacy}</p>
+      </div>
+
+      <div class="ap-connect">
+        <div class="ap-label">AP Connection</div>
+        <p>${ev.apConnect}</p>
+      </div>
+    </div>
+  `;
+}
+
+function filterRegion(region, btn) {
+  currentFilter = region;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedId = null;
+  document.getElementById('empty-state').style.display = 'flex';
+  document.getElementById('detail-content').innerHTML = '';
+  renderTimeline();
+}
+
+// Initial render
+const axis = document.createElement('div');
+axis.className = 'timeline-axis';
+document.getElementById('timeline-panel').appendChild(axis);
+renderTimeline();
+</script>
+</body>
+</html>

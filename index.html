@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DHS Social Studies — Digital Resource Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1B3A6B;
+    --navy-dark: #0f2347;
+    --navy-mid: #243f72;
+    --gold: #C9A227;
+    --gold-light: #e8c050;
+    --gold-faint: rgba(201,162,39,0.08);
+    --cream: #F5F1E8;
+    --text: #1a1a2e;
+    --text-muted: #5a6070;
+    --border: rgba(27,58,107,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--navy-dark);
+    color: rgba(255,255,255,0.55);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 8px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .topbar span { color: var(--gold); }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--navy);
+    position: relative;
+    overflow: hidden;
+    padding: 64px 48px 56px;
+  }
+
+  /* Geometric accent lines */
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 500px; height: 500px;
+    border: 1px solid rgba(201,162,39,0.15);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 320px; height: 320px;
+    border: 1px solid rgba(201,162,39,0.08);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .hero-inner {
+    max-width: 860px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .hero-eyebrow .line {
+    width: 32px; height: 2px;
+    background: var(--gold);
+  }
+
+  .hero-eyebrow span {
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--gold);
+  }
+
+  .hero .tagline {
+    font-size: 16px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 300;
+    max-width: 520px;
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .hero-stat {
+    border-left: 2px solid var(--gold);
+    padding-left: 12px;
+  }
+
+  .hero-stat .val {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+  }
+
+  .hero-stat .lbl {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 3px;
+  }
+
+  /* ── SEARCH + FILTER BAR ── */
+  .toolbar {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 48px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 320px;
+  }
+
+  .search-wrap input {
+    width: 100%;
+    padding: 9px 12px 9px 36px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--cream);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-wrap input:focus { border-color: var(--navy); }
+
+  .search-wrap .icon {
+    position: absolute;
+    left: 10px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  .filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .filter-pill {
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+    font-family: 'Source Sans 3', sans-serif;
+    letter-spacing: 0.3px;
+  }
+
+  .filter-pill:hover { border-color: var(--navy); color: var(--navy); }
+  .filter-pill.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+  /* ── MAIN CONTENT ── */
+  .content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 48px 80px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  .section-header .count {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .course-block {
+    margin-bottom: 48px;
+  }
+
+  .course-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .course-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  .course-label span {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  /* course colors */
+  .c-apwhm { color: #1B3A6B; } .dot-apwhm { background: #1B3A6B; }
+  .c-ush   { color: #8B2020; } .dot-ush   { background: #8B2020; }
+  .c-wh    { color: #1a6b4a; } .dot-wh    { background: #1a6b4a; }
+  .c-gov   { color: #5a3a8b; } .dot-gov   { background: #5a3a8b; }
+  .c-econ  { color: #7a5200; } .dot-econ  { background: #7a5200; }
+
+  /* ── RESOURCE CARDS ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(27,58,107,0.12);
+  }
+
+  .card.live { cursor: pointer; }
+  .card.coming { opacity: 0.62; cursor: default; }
+
+  .card-accent {
+    height: 4px;
+    width: 100%;
+  }
+
+  .card-body {
+    padding: 18px 20px 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .card-type {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .type-interactive { background: rgba(27,58,107,0.1); color: var(--navy); }
+  .type-lesson      { background: rgba(201,162,39,0.15); color: #7a5200; }
+  .type-assessment  { background: rgba(139,32,32,0.1); color: #8B2020; }
+  .type-handout     { background: rgba(26,107,74,0.1); color: #1a6b4a; }
+  .type-coming      { background: rgba(0,0,0,0.06); color: #888; }
+
+  .card-live-badge {
+    margin-left: auto;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #1a6b4a;
+    background: rgba(26,107,74,0.1);
+    padding: 2px 7px;
+    border-radius: 10px;
+  }
+
+  .card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+
+  .card p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  .card-footer {
+    padding: 10px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+    margin-top: 12px;
+  }
+
+  .card-unit {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .card-arrow {
+    font-size: 16px;
+    color: var(--gold);
+    transition: transform 0.2s;
+  }
+
+  .card.live:hover .card-arrow { transform: translateX(4px); }
+
+  .coming-label {
+    font-size: 11px;
+    color: #aaa;
+    font-style: italic;
+  }
+
+  /* ── NO RESULTS ── */
+  .no-results {
+    text-align: center;
+    padding: 64px 0;
+    color: var(--text-muted);
+    display: none;
+  }
+
+  .no-results h3 { font-size: 18px; margin-bottom: 8px; color: var(--navy); }
+  .no-results p  { font-size: 14px; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--navy-dark);
+    color: rgba(255,255,255,0.4);
+    text-align: center;
+    padding: 24px 48px;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  footer span { color: var(--gold); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .hero { padding: 40px 24px; }
+    .toolbar { padding: 12px 20px; }
+    .content { padding: 32px 20px 60px; }
+    .topbar { padding: 8px 20px; }
+    .hero-stats { gap: 20px; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>Douglas High School &nbsp;·&nbsp; <span>Social Studies Department</span></div>
+  <div>Mr. Martin &nbsp;·&nbsp; Digital Resource Hub</div>
+</div>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <div class="line"></div>
+      <span>DHS Digital Resources</span>
+    </div>
+    <h1>Social Studies<br><em>Resource Hub</em></h1>
+    <p class="tagline">Interactive timelines, lesson materials, assessments, and study guides for AP World History Modern, U.S. History, World History, Government, and Economics.</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="val">5</div>
+        <div class="lbl">Courses</div>
+      </div>
+      <div class="hero-stat">
+        <div class="val" id="live-count">1</div>
+        <div class="lbl">Live Resources</div>
+      </div>
+      <div class="hero-stat">
+        <div class="val">Growing</div>
+        <div class="lbl">Updated Regularly</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="icon">🔍</span>
+    <input type="text" id="search" placeholder="Search resources..." oninput="applyFilters()">
+  </div>
+  <div class="filters">
+    <button class="filter-pill active" onclick="setFilter('all', this)">All</button>
+    <button class="filter-pill" onclick="setFilter('apwhm', this)">AP World</button>
+    <button class="filter-pill" onclick="setFilter('ush', this)">U.S. History</button>
+    <button class="filter-pill" onclick="setFilter('wh', this)">World History</button>
+    <button class="filter-pill" onclick="setFilter('gov', this)">Government</button>
+    <button class="filter-pill" onclick="setFilter('econ', this)">Economics</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <div id="no-results" class="no-results">
+    <h3>No resources found</h3>
+    <p>Try a different search term or filter.</p>
+  </div>
+
+  <!-- AP WORLD HISTORY MODERN -->
+  <div class="course-block" data-course="apwhm">
+    <div class="course-label">
+      <div class="course-dot dot-apwhm"></div>
+      <span class="c-apwhm">AP World History Modern</span>
+    </div>
+    <div class="card-grid">
+
+      <div class="card live" onclick="window.open('proxy-wars/index.html', '_blank')" data-course="apwhm" data-tags="cold war proxy wars interactive timeline">
+        <div class="card-accent" style="background: linear-gradient(90deg, #1B3A6B, #C9A227);"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-interactive">Interactive</span>
+            <span class="card-live-badge">● Live</span>
+          </div>
+          <h3>Cold War Proxy Wars Timeline</h3>
+          <p>Clickable timeline of 11 major Cold War proxy conflicts (1945–1991) with sides, stats, primary source quotes, and AP Key Concept connections.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 7 · KC-7.2.II, KC-7.3.III</span>
+          <span class="card-arrow">→</span>
+        </div>
+      </div>
+
+      <div class="card coming" data-course="apwhm" data-tags="wwii world war home front">
+        <div class="card-accent" style="background: #ddd;"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-coming">Coming Soon</span>
+          </div>
+          <h3>WWII Home Front Interactive</h3>
+          <p>Rationing, war bonds, Rosie the Riveter, and the transformation of American society during total war.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 7 · KC-7.1.I</span>
+          <span class="coming-label">In development</span>
+        </div>
+      </div>
+
+      <div class="card coming" data-course="apwhm" data-tags="decolonization independence africa asia">
+        <div class="card-accent" style="background: #ddd;"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-coming">Coming Soon</span>
+          </div>
+          <h3>Decolonization & Independence Movements</h3>
+          <p>Case studies in African and Asian independence — Gandhi, Nkrumah, Nasser — and the role of Cold War competition.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 7 · KC-7.3.II</span>
+          <span class="coming-label">In development</span>
+        </div>
+      </div>
+
+      <div class="card coming" data-course="apwhm" data-tags="new imperialism colonialism africa asia">
+        <div class="card-accent" style="background: #ddd;"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-coming">Coming Soon</span>
+          </div>
+          <h3>New Imperialism Comparison</h3>
+          <p>Methods, ideologies, and resistance — comparing British, French, Belgian, and Japanese colonial systems.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 6 · KC-6.2.II</span>
+          <span class="coming-label">In development</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- U.S. HISTORY -->
+  <div class="course-block" data-course="ush">
+    <div class="course-label">
+      <div class="course-dot dot-ush"></div>
+      <span class="c-ush">U.S. History</span>
+    </div>
+    <div class="card-grid">
+
+      <div class="card coming" data-course="ush" data-tags="cold war vietnam korea containment">
+        <div class="card-accent" style="background: #ddd;"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-coming">Coming Soon</span>
+          </div>
+          <h3>Cold War America: Containment at Home & Abroad</h3>
+          <p>McCarthyism, the Red Scare, civil defense, and the domestic dimensions of America's Cold War posture.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 8</span>
+          <span class="coming-label">In development</span>
+        </div>
+      </div>
+
+      <div class="card coming" data-course="ush" data-tags="wwii home front double v campaign japanese internment">
+        <div class="card-accent" style="background: #ddd;"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-coming">Coming Soon</span>
+          </div>
+          <h3>WWII Home Front & the Double V Campaign</h3>
+          <p>War mobilization, civil rights activism, Japanese internment, and the contradictions of fighting fascism abroad.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 7</span>
+          <span class="coming-label">In development</span>
+        </div>
+      </div>
+
+      <div class="card coming" data-course="ush" data-tags="great depression new deal FDR 1930s">
+        <div class="card-accent" style="background: #ddd;"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-coming">Coming Soon</span>
+          </div>
+          <h3>Great Depression & the New Deal</h3>
+          <p>Causes of the crash, Hoover's response, FDR's programs, and the debate over government's role in the economy.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 7</span>
+          <span class="coming-label">In development</span>
+        </div>
+      </div>
+
+      <div class="card coming" data-course="ush" data-tags="civil rights movement 1950s 1960s MLK">
+        <div class="card-accent" style="background: #ddd;"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-coming">Coming Soon</span>
+          </div>
+          <h3>Civil Rights Movement</h3>
+          <p>From Brown v. Board to the Voting Rights Act — strategies, leaders, legislation, and legacies of the movement.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 8</span>
+          <span class="coming-label">In development</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- WORLD HISTORY -->
+  <div class="course-block" data-course="wh">
+    <div class="course-label">
+      <div class="course-dot dot-wh"></div>
+      <span class="c-wh">World History</span>
+    </div>
+    <div class="card-grid">
+
+      <div class="card coming" data-course="wh" data-tags="world war one wwi trench warfare weapons">
+        <div class="card-accent" style="background: #ddd;"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-coming">Coming Soon</span>
+          </div>
+          <h3>WWI Weapons Technology & the Western Front</h3>
+          <p>How industrial-age weapons — machine guns, poison gas, tanks — transformed warfare and produced stalemate.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 5</span>
+          <span class="coming-label">In development</span>
+        </div>
+      </div>
+
+      <div class="card coming" data-course="wh" data-tags="rise of dictators hitler mussolini interwar period">
+        <div class="card-accent" style="background: #ddd;"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-coming">Coming Soon</span>
+          </div>
+          <h3>Rise of Dictators: Interwar Europe</h3>
+          <p>Hitler, Mussolini, and Stalin — how economic crisis, wounded nationalism, and weak democracies enabled authoritarianism.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 6</span>
+          <span class="coming-label">In development</span>
+        </div>
+      </div>
+
+      <div class="card coming" data-course="wh" data-tags="D-Day operation overlord normandy wwii">
+        <div class="card-accent" style="background: #ddd;"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-coming">Coming Soon</span>
+          </div>
+          <h3>D-Day & the Liberation of Europe</h3>
+          <p>Operation Overlord, the Normandy landings, and the strategic campaign that broke the Nazi hold on Western Europe.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 6</span>
+          <span class="coming-label">In development</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GOVERNMENT -->
+  <div class="course-block" data-course="gov">
+    <div class="course-label">
+      <div class="course-dot dot-gov"></div>
+      <span class="c-gov">U.S. Government & Politics</span>
+    </div>
+    <div class="card-grid">
+
+      <div class="card coming" data-course="gov" data-tags="constitution branches government separation of powers">
+        <div class="card-accent" style="background: #ddd;"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-coming">Coming Soon</span>
+          </div>
+          <h3>Separation of Powers & Checks and Balances</h3>
+          <p>How the three branches interact, constrain each other, and adapt to modern governance challenges.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 2</span>
+          <span class="coming-label">In development</span>
+        </div>
+      </div>
+
+      <div class="card coming" data-course="gov" data-tags="civil liberties bill of rights supreme court">
+        <div class="card-accent" style="background: #ddd;"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-coming">Coming Soon</span>
+          </div>
+          <h3>Civil Liberties & the Bill of Rights</h3>
+          <p>Landmark Supreme Court cases defining free speech, due process, privacy, and the limits of government power.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 3</span>
+          <span class="coming-label">In development</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ECONOMICS -->
+  <div class="course-block" data-course="econ">
+    <div class="course-label">
+      <div class="course-dot dot-econ"></div>
+      <span class="c-econ">Economics</span>
+    </div>
+    <div class="card-grid">
+
+      <div class="card coming" data-course="econ" data-tags="supply demand market economics basics">
+        <div class="card-accent" style="background: #ddd;"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-coming">Coming Soon</span>
+          </div>
+          <h3>Supply, Demand & Market Equilibrium</h3>
+          <p>Interactive graphs and real-world examples showing how prices are set and how markets respond to change.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 1</span>
+          <span class="coming-label">In development</span>
+        </div>
+      </div>
+
+      <div class="card coming" data-course="econ" data-tags="fiscal monetary policy federal reserve inflation">
+        <div class="card-accent" style="background: #ddd;"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-type type-coming">Coming Soon</span>
+          </div>
+          <h3>Fiscal vs. Monetary Policy</h3>
+          <p>How Congress and the Federal Reserve use spending, taxes, and interest rates to manage the economy.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-unit">Unit 3</span>
+          <span class="coming-label">In development</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Douglas High School &nbsp;·&nbsp; <span>Social Studies Department</span> &nbsp;·&nbsp; Mr. Martin &nbsp;·&nbsp; Updated regularly
+</footer>
+
+<script>
+  let activeFilter = 'all';
+
+  function setFilter(course, btn) {
+    activeFilter = course;
+    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const query = document.getElementById('search').value.toLowerCase().trim();
+    const blocks = document.querySelectorAll('.course-block');
+    let totalVisible = 0;
+
+    blocks.forEach(block => {
+      const blockCourse = block.dataset.course;
+      const courseMatch = activeFilter === 'all' || activeFilter === blockCourse;
+      let blockHasVisible = false;
+
+      block.querySelectorAll('.card').forEach(card => {
+        const cardCourse = card.dataset.course;
+        const cardTags = (card.dataset.tags || '').toLowerCase();
+        const cardTitle = card.querySelector('h3') ? card.querySelector('h3').textContent.toLowerCase() : '';
+        const cardDesc = card.querySelector('p') ? card.querySelector('p').textContent.toLowerCase() : '';
+
+        const courseMatch2 = activeFilter === 'all' || activeFilter === cardCourse;
+        const textMatch = !query || cardTitle.includes(query) || cardTags.includes(query) || cardDesc.includes(query);
+
+        if (courseMatch2 && textMatch) {
+          card.style.display = '';
+          blockHasVisible = true;
+          totalVisible++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      block.style.display = (courseMatch && blockHasVisible) ? '' : 'none';
+    });
+
+    document.getElementById('no-results').style.display = totalVisible === 0 ? 'block' : 'none';
+  }
+
+  // Count live resources
+  const liveCount = document.querySelectorAll('.card.live').length;
+  document.getElementById('live-count').textContent = liveCount;
+</script>
+</body>
+</html>
